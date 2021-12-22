@@ -38,22 +38,17 @@ func startBuild() {
     let dateKey = dateString(for: startDate)
 
     var buildData = getBuildData() ?? []
-    if let index = buildData.firstIndex(where: { $0.date == dateKey }) {
-        buildData[index].lastStart = startDate
-    } else {
-        buildData.append(BuildData(date: dateKey, totalBuildTime: 0, lastStart: startDate, totalBuilds: 0))
-    }
+    buildData.append(BuildData(date: dateKey, totalBuildTime: 0, lastStart: startDate, totalBuilds: 0))
     write(buildData)
 }
 
 func endBuild() {
     let endDate = Date()
-    let dateKey = dateString(for: endDate)
     var buildData = getBuildData() ?? []
     let index = buildData.index(before: buildData.endIndex)
     let buildDuration = buildData[index].lastStart.distance(to: endDate)
 
-    guard buildDuration > 15 && buildDuration < 1000 else {
+    guard buildDuration < 1000 else {
         return
     }
     buildData[index].totalBuildTime += buildDuration
@@ -70,6 +65,9 @@ func listBuildTimes() {
 
     for buildTime in buildData {
         let totalBuildTime = buildTime.totalBuildTime.asReadableTime()
+        guard buildTime.totalBuilds > 0 else {
+            continue
+        }
         let averageBuildTime = (buildTime.totalBuildTime / Double(max(buildTime.totalBuilds, 1))).asReadableTime()
         print("\(buildTime.date): \t Total Build Time: \(totalBuildTime) \t Average Build Time: \(averageBuildTime)")
     }
